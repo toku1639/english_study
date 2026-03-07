@@ -357,11 +357,7 @@ if (ShadowSpeechRecognition) {
     }
   };
   shadowRecognition.onerror = (event) => {
-    if (event.error === "not-allowed") {
-      shadowStatus.textContent = "Microphone permission is required for transcription.";
-    } else {
-      shadowStatus.textContent = `Transcription error: ${event.error}`;
-    }
+    shadowStatus.textContent = getTranscriptionErrorMessage(event.error);
   };
 }
 
@@ -465,7 +461,7 @@ shadowStart.addEventListener("click", async () => {
     try {
       shadowRecognition.start();
     } catch (error) {
-      shadowStatus.textContent = "Transcription could not start. Recording continues.";
+      shadowStatus.textContent = "Transcription could not start. Recording continues. Check microphone and browser speech-recognition settings.";
     }
   } else {
     shadowStatus.textContent = "Recording started. Speech recognition is not supported in this browser.";
@@ -668,7 +664,24 @@ function persistTranscript() {
 function stopTranscription() {
   if (!speechRecognition || !transcriptionRunning) return;
   transcriptionRunning = false;
-  speechRecognition.stop();
+  try {
+    speechRecognition.stop();
+  } catch (error) {
+    // Ignore stop errors when recognition is already stopped.
+  }
+}
+
+function getTranscriptionErrorMessage(errorCode) {
+  if (errorCode === "not-allowed") {
+    return "Microphone permission is required for transcription.";
+  }
+  if (errorCode === "service-not-allowed") {
+    return "Speech recognition service is blocked in this browser. Try Chrome and confirm microphone access is allowed for this site.";
+  }
+  if (errorCode === "network") {
+    return "Network error while using speech recognition service.";
+  }
+  return `Transcription error: ${errorCode}`;
 }
 
 function startTranscription() {
@@ -680,7 +693,12 @@ function startTranscription() {
   transcriptionRunning = true;
   transcribeStatus.textContent = "Listening and transcribing...";
   speechRecognition.lang = speechLang.value;
-  speechRecognition.start();
+  try {
+    speechRecognition.start();
+  } catch (error) {
+    transcriptionRunning = false;
+    transcribeStatus.textContent = "Transcription could not start. Please retry and check browser microphone settings.";
+  }
 }
 
 function releaseCurrentStream() {
@@ -806,18 +824,19 @@ if (SpeechRecognition) {
 
   speechRecognition.onend = () => {
     if (transcriptionRunning) {
-      speechRecognition.start();
+      try {
+        speechRecognition.start();
+      } catch (error) {
+        transcriptionRunning = false;
+        transcribeStatus.textContent = "Transcription stopped and could not auto-restart.";
+      }
       return;
     }
   };
 
   speechRecognition.onerror = (event) => {
     transcriptionRunning = false;
-    if (event.error === "not-allowed") {
-      transcribeStatus.textContent = "Microphone permission is required for transcription.";
-      return;
-    }
-    transcribeStatus.textContent = `Transcription error: ${event.error}`;
+    transcribeStatus.textContent = getTranscriptionErrorMessage(event.error);
   };
 } else {
   transcribeStatus.textContent = "This browser does not support speech recognition.";
