@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>English Study Tool 3-in-1</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="container">
+    <h1 class="app-title">English Study Tool</h1>
+
+    <button id="menuToggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="tabMenu" aria-label="Toggle menu">☰</button>
+
+    <nav id="tabMenu" class="tabs" role="tablist" aria-label="Switch study apps">
+      <button id="tab-wpm" class="tab-btn" type="button" role="tab" aria-controls="panel-wpm" aria-selected="true" data-tab="wpm">WPM Calculator</button>
+      <button id="tab-tts" class="tab-btn" type="button" role="tab" aria-controls="panel-tts" aria-selected="false" data-tab="tts">Text to Speech</button>
+      <button id="tab-record" class="tab-btn" type="button" role="tab" aria-controls="panel-record" aria-selected="false" data-tab="record">60-Second Speech</button>
+      <button id="tab-passages" class="tab-btn" type="button" role="tab" aria-controls="panel-passages" aria-selected="false" data-tab="passages">Passage Bank</button>
+    </nav>
+
+    <section id="panel-wpm" class="panel active" role="tabpanel" aria-labelledby="tab-wpm" data-panel="wpm">
+      <h2 class="section-title">WPM Calculator</h2>
+      <p class="hint">Paste text and press Start to begin. WPM is calculated as "word count / elapsed minutes".</p>
+
+      <div class="grid">
+        <div>
+          <label for="targetText">Paste text (multi-line)</label>
+          <textarea id="targetText">Learning English every day helps me communicate better with people around the world.</textarea>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button id="wpmStart" class="success">Start</button>
+        <button id="wpmStop" class="danger">Stop</button>
+        <button id="wpmReset" class="ghost">Reset</button>
+      </div>
+
+      <div class="metrics">
+        <div class="metric"><span class="label">Word count</span><span class="value" id="wordCountValue">0</span></div>
+        <div class="metric"><span class="label">Elapsed seconds</span><span class="value" id="wpmSeconds">0</span></div>
+        <div class="metric"><span class="label">WPM</span><span class="value" id="wpmValue">0.0</span></div>
+      </div>
+
+      <p class="status" id="wpmStatus">Ready. Press Start to begin measurement.</p>
+    </section>
+
+    <section id="panel-tts" class="panel" role="tabpanel" aria-labelledby="tab-tts" data-panel="tts">
+      <h2 class="section-title">Text to Speech</h2>
+      <p class="hint">Choose a voice and adjust rate and pitch for playback.</p>
+
+      <div class="grid two">
+        <div>
+          <label for="speechText">Text to read</label>
+          <textarea id="speechText">Today is a great day to practice English pronunciation and listening.</textarea>
+        </div>
+        <div class="grid">
+          <div>
+            <label for="voiceSelect">Voice</label>
+            <select id="voiceSelect"></select>
+          </div>
+          <div class="grid two">
+            <div>
+              <label for="rateRange">Rate: <span id="rateLabel">1.0</span></label>
+              <input id="rateRange" type="range" min="0.5" max="2" step="0.1" value="1">
+            </div>
+            <div>
+              <label for="pitchRange">Pitch: <span id="pitchLabel">1.0</span></label>
+              <input id="pitchRange" type="range" min="0.5" max="2" step="0.1" value="1">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button id="speakBtn" class="success">Play</button>
+        <button id="pauseBtn" class="ghost">Pause</button>
+        <button id="resumeBtn" class="ghost">Resume</button>
+        <button id="stopBtn" class="danger">Stop</button>
+      </div>
+      <p class="status" id="ttsStatus">Ready.</p>
+
+      <hr>
+
+      <div class="btn-row">
+        <button id="shadowToggle" class="ghost" type="button" aria-expanded="false" aria-controls="shadowPanel">Enable Shadowing Mode</button>
+      </div>
+
+      <div id="shadowPanel" class="grid" hidden>
+        <p class="hint">Start Shadowing will play model audio and record your voice at the same time.</p>
+        <div>
+          <label for="shadowLang">Transcription language</label>
+          <select id="shadowLang">
+            <option value="en-US">English (US)</option>
+            <option value="en-GB">English (UK)</option>
+            <option value="ja-JP">Japanese</option>
+          </select>
+        </div>
+        <div class="btn-row">
+          <button id="shadowStart" class="success" type="button">Start Shadowing</button>
+          <button id="shadowStop" class="danger" type="button" disabled>Stop Shadowing</button>
+          <button id="shadowPlayMine" class="ghost" type="button" disabled>Play My Recording</button>
+          <button id="shadowClear" class="ghost" type="button">Clear Result</button>
+        </div>
+        <p class="status" id="shadowStatus">Shadowing mode is ready.</p>
+        <div class="grid two">
+          <div>
+            <label for="shadowModelText">Model text</label>
+            <textarea id="shadowModelText" readonly></textarea>
+          </div>
+          <div>
+            <label for="shadowTranscriptText">My transcript</label>
+            <textarea id="shadowTranscriptText" readonly placeholder="Your transcript will appear here..."></textarea>
+          </div>
+        </div>
+        <audio id="shadowAudio" controls hidden></audio>
+      </div>
+    </section>
+
+    <section id="panel-record" class="panel" role="tabpanel" aria-labelledby="tab-record" data-panel="record">
+      <h2 class="section-title">60-Second Speech</h2>
+      <p class="hint">Start will begin the timer, recording, and transcription at the same time. You can play recordings immediately after stopping.</p>
+
+      <div class="timer-display" id="timerDisplay">60.00</div>
+      <p class="status" id="timerStatus">Timer stopped</p>
+      <div class="btn-row">
+        <button id="timerStart" class="success">Start</button>
+        <button id="timerPause" class="danger">Stop</button>
+        <button id="timerReset" class="ghost">Reset to 60 seconds</button>
+      </div>
+
+      <hr>
+
+      <p class="hint">Recording requires microphone permission in your browser.</p>
+      <div class="btn-row">
+        <button id="recordClear" class="danger">Clear recordings</button>
+      </div>
+      <div id="recordings" class="recordings"></div>
+      <p class="status" id="recordStatus">Recording standby</p>
+
+      <div class="grid">
+        <div>
+          <label for="speechLang">Transcription language</label>
+          <select id="speechLang">
+            <option value="en-US">English (US)</option>
+            <option value="en-GB">English (UK)</option>
+            <option value="ja-JP">Japanese</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button id="transcribeCopy" class="ghost">Copy transcript</button>
+        <button id="transcribeClear" class="ghost">Clear transcript</button>
+      </div>
+      <p class="status" id="transcribeStatus">Transcription is ready.</p>
+      <div class="grid">
+        <div>
+          <label for="transcriptText">Transcript</label>
+          <textarea id="transcriptText" placeholder="Your transcript will appear here..." readonly></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-passages" class="panel" role="tabpanel" aria-labelledby="tab-passages" data-panel="passages">
+      <h2 class="section-title">Passage Bank</h2>
+      <p class="hint">Save practice passages with titles. Only titles are shown first; click a title to expand the full text.</p>
+
+      <div class="grid">
+        <div>
+          <label for="passageTitle">Title</label>
+          <input id="passageTitle" type="text" placeholder="e.g. Daily Speaking Practice #1">
+        </div>
+        <div>
+          <label for="passageBody">Passage text</label>
+          <textarea id="passageBody" placeholder="Paste your long passage here..."></textarea>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button id="passageAdd" class="success" type="button">Add passage</button>
+      </div>
+      <p class="status" id="passageStatus">Ready to save passages.</p>
+
+      <div id="passageList" class="passage-list"></div>
+    </section>
+
+    <p class="footer-note">On mobile, adding this app to your home screen makes launching easier.</p>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
