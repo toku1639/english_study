@@ -193,7 +193,6 @@ const shadowStart = document.getElementById("shadowStart");
 const shadowStop = document.getElementById("shadowStop");
 const shadowPlayMine = document.getElementById("shadowPlayMine");
 const shadowCopy = document.getElementById("shadowCopy");
-const shadowTranscriptClear = document.getElementById("shadowTranscriptClear");
 const shadowClear = document.getElementById("shadowClear");
 const shadowStatus = document.getElementById("shadowStatus");
 const shadowModelText = document.getElementById("shadowModelText");
@@ -306,7 +305,6 @@ function clearShadowAudio() {
 function updateShadowTranscriptButtons() {
   const hasText = Boolean(shadowTranscriptText.value.trim());
   shadowCopy.disabled = !hasText;
-  shadowTranscriptClear.disabled = !hasText;
 }
 
 function stopShadowRecognition() {
@@ -522,13 +520,6 @@ shadowCopy.addEventListener("click", async () => {
     shadowTranscriptText.setAttribute("readonly", "readonly");
     shadowStatus.textContent = "Copy failed. Text is selected, please copy manually.";
   }
-});
-
-shadowTranscriptClear.addEventListener("click", () => {
-  shadowFinalTranscript = "";
-  renderShadowTranscript();
-  persistShadowState();
-  shadowStatus.textContent = "Transcript cleared.";
 });
 
 shadowClear.addEventListener("click", () => {
