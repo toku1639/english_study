@@ -192,6 +192,8 @@ const shadowLang = document.getElementById("shadowLang");
 const shadowStart = document.getElementById("shadowStart");
 const shadowStop = document.getElementById("shadowStop");
 const shadowPlayMine = document.getElementById("shadowPlayMine");
+const shadowCopy = document.getElementById("shadowCopy");
+const shadowTranscriptClear = document.getElementById("shadowTranscriptClear");
 const shadowClear = document.getElementById("shadowClear");
 const shadowStatus = document.getElementById("shadowStatus");
 const shadowModelText = document.getElementById("shadowModelText");
@@ -282,6 +284,7 @@ function persistShadowState() {
 function renderShadowTranscript(interimText = "") {
   const merged = [shadowFinalTranscript.trim(), interimText.trim()].filter(Boolean).join("\n");
   shadowTranscriptText.value = merged;
+  updateShadowTranscriptButtons();
 }
 
 function releaseShadowStream() {
@@ -298,6 +301,12 @@ function clearShadowAudio() {
   shadowAudio.removeAttribute("src");
   shadowAudio.hidden = true;
   shadowPlayMine.disabled = true;
+}
+
+function updateShadowTranscriptButtons() {
+  const hasText = Boolean(shadowTranscriptText.value.trim());
+  shadowCopy.disabled = !hasText;
+  shadowTranscriptClear.disabled = !hasText;
 }
 
 function stopShadowRecognition() {
@@ -488,6 +497,40 @@ shadowPlayMine.addEventListener("click", () => {
   shadowAudio.play();
 });
 
+shadowCopy.addEventListener("click", async () => {
+  const textToCopy = shadowTranscriptText.value.trim();
+  if (!textToCopy) {
+    shadowStatus.textContent = "No transcript to copy yet.";
+    return;
+  }
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(textToCopy);
+    } else {
+      shadowTranscriptText.removeAttribute("readonly");
+      shadowTranscriptText.select();
+      shadowTranscriptText.setSelectionRange(0, shadowTranscriptText.value.length);
+      document.execCommand("copy");
+      shadowTranscriptText.setAttribute("readonly", "readonly");
+    }
+    shadowStatus.textContent = "Transcript copied.";
+  } catch (error) {
+    shadowTranscriptText.removeAttribute("readonly");
+    shadowTranscriptText.select();
+    shadowTranscriptText.setSelectionRange(0, shadowTranscriptText.value.length);
+    shadowTranscriptText.setAttribute("readonly", "readonly");
+    shadowStatus.textContent = "Copy failed. Text is selected, please copy manually.";
+  }
+});
+
+shadowTranscriptClear.addEventListener("click", () => {
+  shadowFinalTranscript = "";
+  renderShadowTranscript();
+  persistShadowState();
+  shadowStatus.textContent = "Transcript cleared.";
+});
+
 shadowClear.addEventListener("click", () => {
   shadowFinalTranscript = "";
   renderShadowTranscript();
@@ -513,6 +556,7 @@ shadowLang.addEventListener("change", () => {
 setShadowPanelOpen(false);
 setShadowButtons(false);
 shadowPlayMine.disabled = true;
+updateShadowTranscriptButtons();
 
 // ----- 60-min Timer + Recorder -----
 const timerDisplay = document.getElementById("timerDisplay");
@@ -654,11 +698,18 @@ function updateRecordClearButton() {
 function renderTranscript(interimText = "") {
   const merged = [finalTranscript.trim(), interimText.trim()].filter(Boolean).join("\n");
   transcriptText.value = merged;
+  updateTranscriptButtons();
 }
 
 function persistTranscript() {
   appState.transcriptText = finalTranscript;
   saveState();
+}
+
+function updateTranscriptButtons() {
+  const hasText = Boolean(transcriptText.value.trim());
+  transcribeCopy.disabled = !hasText;
+  transcribeClear.disabled = !hasText;
 }
 
 function stopTranscription() {
@@ -876,6 +927,12 @@ transcribeClear.addEventListener("click", () => {
   transcribeStatus.textContent = "Transcript cleared.";
 });
 
+transcriptText.addEventListener("input", () => {
+  finalTranscript = transcriptText.value;
+  persistTranscript();
+  updateTranscriptButtons();
+});
+
 speechLang.addEventListener("change", () => {
   appState.speechLang = speechLang.value;
   saveState();
@@ -886,6 +943,7 @@ speechLang.addEventListener("change", () => {
 });
 
 updateRecordClearButton();
+updateTranscriptButtons();
 
 // ----- Passage Bank -----
 const passageTitle = document.getElementById("passageTitle");
